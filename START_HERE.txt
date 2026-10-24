@@ -1,0 +1,80 @@
+SMARTSHOP ERP - WINDOWS PAR SHURU KAREIN
+
+Yeh local source package hai. Setup ke baad app browser mein chalega:
+http://127.0.0.1:8765
+Roz ke kaam ke liye internet, API key ya paid service ki zarurat nahi hai.
+Laptop aur local PostgreSQL service chalu rehne chahiye.
+
+Pehle SETUP_WINDOWS.md aur VERIFICATION.md padh lein. Neeche short steps hain.
+Kisi existing database ko replace ya reinitialize na karein.
+
+1) ZIP extract karein, jaise C:\SmartShopERP mein.
+   Normal use ke liye Python 3.14 Windows x64 aur PostgreSQL 18 chahiye.
+   Sirf official websites se manually install karein, agar pehle se nahi hain:
+   https://www.python.org/downloads/windows/
+   https://www.postgresql.org/download/windows/
+   Frontend pehle se built hai; normal use ke liye Node.js ki zarurat nahi hai.
+
+2) Project folder mein PowerShell khol kar:
+
+   py -3.14 -m venv .venv
+   .\.venv\Scripts\python.exe -m pip install --no-index --find-links vendor\wheels --require-hashes -r requirements-lock.txt
+
+   Offline wheel bundle Python 3.14 + Windows x64 ke liye hai.
+   Python 3.13/other platform ka online alternative SETUP_WINDOWS.md mein hai.
+
+3) PostgreSQL SQL Shell mein local database administrator ke roop mein:
+
+   CREATE ROLE smartshop LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE;
+   \password smartshop
+   CREATE DATABASE smartshop OWNER smartshop ENCODING 'UTF8' TEMPLATE template0;
+
+   Password private prompt mein set karein. Agar naam pehle se use ho raha hai,
+   naya database/role naam chun kar configure command mein bhi wahi naam dein.
+
+4) Project ki PowerShell window mein:
+
+   .\scripts\configure.ps1 -Database smartshop -DatabaseUser smartshop -DatabasePort 5432
+
+   Database role ka password enter karein. Script unique secrets banayega aur
+   first-owner setup token dikhayega. Token private rakhein. .env file share na karein.
+
+5) Database tables banayein:
+
+   . .\scripts\common.ps1
+   Import-SmartShopEnvironment
+   Assert-SmartShopSecrets
+   Assert-LocalPostgres
+   Set-Location backend
+   ..\.venv\Scripts\python.exe manage.py check
+   ..\.venv\Scripts\python.exe manage.py migrate --noinput
+   Set-Location ..
+
+   Har command successful hone ke baad hi agla step karein.
+
+6) App start karein:
+
+   .\scripts\start.ps1
+
+   Browser mein http://127.0.0.1:8765 kholein. Setup token se pehla owner/shop
+   banayein aur apna strong password set karein. Default login/password nahi hai.
+   Pehle test database mein cash register, purchase, billing, return aur reports check karein.
+
+7) Roz ka shutdown: posting complete karein, cash drawer close/reconcile karein,
+   phir server wali PowerShell window mein Ctrl+C dabayein.
+   Sirf browser band karne se server band nahi hota.
+
+8) Backup:
+
+   .\scripts\backup.ps1 -PostgresBin 'C:\Program Files\PostgreSQL\18\bin'
+
+   Backup ko alag protected drive/device par copy karein. Naye database mein
+   restore test karne ke exact steps SETUP_WINDOWS.md mein hain. Restore script
+   live database ko overwrite nahi karta. .env aur uploaded files alag protect karein.
+
+Cash hi payment medium hai. Udhaar unpaid receivable ke roop mein alag record
+hota hai. Real opening balances, GST classification/invoices aur accountant
+acceptance verify hone ke baad hi live shop records shuru karein.
+
+Windows security policy, antivirus ya firewall ko disable na karein.
+App localhost ke liye hai; public internet/LAN par expose na karein.

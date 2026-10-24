@@ -1,0 +1,35 @@
+# Local secrets, databases and backups
+.env
+.env.*
+!.env.example
+*.dump
+*.partial
+*.sql
+backups/
+media/
+logs/
+
+# Python and local environments
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+staticfiles/
+
+# Frontend build/cache
+node_modules/
+frontend/dist/
+.vite/
+
+# Editor/OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local verification output
+work/
+test-results/
